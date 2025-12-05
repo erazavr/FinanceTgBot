@@ -31,7 +31,8 @@ async def command_start_handler(message: Message) -> None:
 @router.message(Command("today"))
 async def command_today_handler(message: Message) -> None:
     try:
-        today_expenses = await expenses.get_today_expenses()
+        chat_id = message.chat.id
+        today_expenses = await expenses.get_today_expenses(chat_id)
     except Exception as e:
         await message.answer(str(e))
         return
@@ -43,7 +44,8 @@ async def command_today_handler(message: Message) -> None:
 @router.message(Command("week"))
 async def command_week_handler(message: Message) -> None:
     try:
-        week_expenses = await expenses.get_week_expenses()
+        chat_id = message.chat.id
+        week_expenses = await expenses.get_week_expenses(chat_id)
     except Exception as e:
         await message.answer(str(e))
         return
@@ -54,7 +56,8 @@ async def command_week_handler(message: Message) -> None:
 @router.message(Command("month"))
 async def command_month_handler(message: Message) -> None:
     try:
-        month_expenses = await expenses.get_month_expenses()
+        chat_id = message.chat.id
+        month_expenses = await expenses.get_month_expenses(chat_id)
     except Exception as e:
         await message.answer(str(e))
         return
@@ -65,7 +68,8 @@ async def command_month_handler(message: Message) -> None:
 @router.message(Command("get_categories"))
 async def command_month_handler(message: Message) -> None:
     try:
-        categories_list = await categories.get_categories()
+        chat_id = message.chat.id
+        categories_list = await categories.get_categories(chat_id)
     except Exception as e:
         await message.answer(str(e))
         return
@@ -75,6 +79,7 @@ async def command_month_handler(message: Message) -> None:
 # Добавление расходов
 @router.message(F.text.regexp(r"^\d+$"))
 async def amount_handler(message: Message):
+    chat_id = message.chat.id
     try:
         amount = expenses.parse_message(message.text)
         user_id = message.from_user.id
@@ -83,7 +88,7 @@ async def amount_handler(message: Message):
         await message.answer(str(e))
         return
 
-    await message.reply(f'Сумма {amount} сом \nВыберите категорию:', reply_markup=await inline_categories())
+    await message.reply(f'Сумма {amount} сом \nВыберите категорию:', reply_markup=await inline_categories(chat_id))
 
 
 # Добавление категории
@@ -97,7 +102,6 @@ async def add_category_handler(message: Message) -> None:
 # Удаление категории
 @router.message(F.text.startswith("/del_cat_"))
 async def command_del_handler(message: Message) -> None:
-    print('im here 2')
     row_id = int(message.text.split("/del_cat_")[1])
     await categories.del_category(row_id)
     await message.answer('Категория удалена')
@@ -106,7 +110,6 @@ async def command_del_handler(message: Message) -> None:
 # Удаление расходов
 @router.message(F.text.startswith("/del_"))
 async def command_del_handler(message: Message) -> None:
-    print('im here 1')
     row_id = int(message.text.split("/del_")[1])
     await expenses.del_expense(row_id)
     await message.answer('Расход удален')
@@ -115,6 +118,7 @@ async def command_del_handler(message: Message) -> None:
 @router.callback_query(F.data.startswith("cat:"))
 async def category_chosen(callback: CallbackQuery):
     user_id = callback.from_user.id
+    chat_id = callback.message.chat.id
 
     if user_id not in pending_amount:
         await callback.answer("Сначала отправь сумму!", show_alert=True)
@@ -123,7 +127,7 @@ async def category_chosen(callback: CallbackQuery):
     category_id = int(callback.data.split(":")[1])
 
     try:
-        expense = await expenses.add_expense(pending_amount[user_id], category_id)
+        expense = await expenses.add_expense(pending_amount[user_id], category_id, chat_id)
     except Exception as e:
         await callback.answer(str(e))
         return
@@ -152,7 +156,8 @@ async def catch_category_name_handler(message: Message) -> None:
     if user_state.get(user_id) != "waiting_category_name":
         return
     try:
-        await categories.add_category(message.text)
+        chat_id = message.chat.id
+        await categories.add_category(message.text,chat_id)
     except Exception as e:
         await message.answer(str(e))
         return

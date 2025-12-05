@@ -15,12 +15,11 @@ class Message(NamedTuple):
     category: str
 
 
-async def add_expense(amount: int, category_id: int) -> Expenses:
-
+async def add_expense(amount: int, category_id: int, chat_id: int) -> Expenses:
     db = get_db()
 
     cur = db.cursor()
-    cur.execute('insert into expenses (amount, category_id) VALUES (?,?)', (amount, category_id))
+    cur.execute('insert into expenses (amount, category_id, chat_id) VALUES (?,?,?)', (amount, category_id, chat_id))
 
     cur.execute('select * from categories where id = ?', (category_id,))
 
@@ -34,22 +33,25 @@ async def add_expense(amount: int, category_id: int) -> Expenses:
     return Expenses(None, int(amount), category_name)
 
 
-async def get_today_expenses() -> str:
+async def get_today_expenses(chat_id: int) -> str:
     return _get_expenses(start='date("now", "localtime")',
                          end='date("now", "localtime", "+1 day")',
-                         text='На сегодня нет расходов ✨')
+                         text='На сегодня нет расходов ✨',
+                         chat_id=chat_id)
 
 
-async def get_month_expenses() -> str:
+async def get_month_expenses(chat_id: int) -> str:
     return _get_expenses(start='date("now", "start of month")',
                          end='date("now", "start of month", "+1 month")',
-                         text='За месяц нет расходов ✨')
+                         text='За месяц нет расходов ✨',
+                         chat_id=chat_id)
 
 
-async def get_week_expenses() -> str:
+async def get_week_expenses(chat_id: int) -> str:
     return _get_expenses(start='date("now", "weekday 1", "-7 days")',
                          end='date(created_at) < date("now", "weekday 1")',
-                         text='За неделю нет расходов ✨')
+                         text='За неделю нет расходов ✨',
+                         chat_id=chat_id)
 
 
 async def del_expense(row_id: int) -> None:
@@ -60,11 +62,11 @@ async def del_expense(row_id: int) -> None:
     db.close()
 
 
-def _get_expenses(start: str, end: str, text: str):
+def _get_expenses(start: str, end: str, text: str, chat_id: int):
     db = get_db()
     cur = db.cursor()
 
-    query = f'select e.id as id, e.amount as amount, c.name as name from expenses e inner join categories c on c.id = e.category_id where date(e.created_at) >= {start} and date(e.created_at) < {end} order by date(e.created_at) desc'
+    query = f'select e.id as id, e.amount as amount, c.name as name from expenses e inner join categories c on c.id = e.category_id where e.chat_id = {chat_id} and date(e.created_at) >= {start} and date(e.created_at) < {end} order by date(e.created_at) desc'
     cur.execute(query)
     result = cur.fetchall()
     db.close()

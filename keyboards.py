@@ -5,11 +5,11 @@ from db import get_db
 
 cancel_button = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='❌ Отмена', callback_data='cancel')]])
 
-async def inline_categories():
+async def inline_categories(chat_id: int):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("SELECT * FROM categories")
+    cur.execute("SELECT * FROM categories WHERE chat_id IS NULL OR chat_id = ?", (chat_id,))
     categories = cur.fetchall()
     db.close()
 

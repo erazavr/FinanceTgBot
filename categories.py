@@ -1,12 +1,12 @@
 from db import get_db
 
 
-async def get_categories():
+async def get_categories(chat_id: int):
     db = get_db()
 
     cur = db.cursor()
 
-    cur.execute('SELECT * FROM categories')
+    cur.execute('SELECT * FROM categories WHERE chat_id IS NULL OR chat_id = ?', (chat_id,))
     categories = cur.fetchall()
     db.close()
 
@@ -24,7 +24,7 @@ async def get_categories():
     return '\n'.join(text_lines)
 
 
-async def add_category(name: str):
+async def add_category(name: str, chat_id: int):
     db = get_db()
 
     cur = db.cursor()
@@ -40,7 +40,7 @@ async def add_category(name: str):
         category_name = category[1]
         raise Exception(f'Категория {category_name} уже существует ❗️')
 
-    cur.execute('insert into categories (name,name_lower) VALUES (?,?)', (name, name.lower()))
+    cur.execute('insert into categories (name,name_lower,chat_id) VALUES (?,?,?)', (name, name.lower(), chat_id))
 
     db.commit()
     db.close()
