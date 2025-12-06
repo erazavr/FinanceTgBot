@@ -3,6 +3,8 @@ import re
 from db import get_db
 from typing import NamedTuple, Optional
 
+from utils import format_amount
+
 
 class Expenses(NamedTuple):
     id: Optional[int]
@@ -30,7 +32,7 @@ async def add_expense(amount: int, category_id: int, chat_id: int) -> Expenses:
     db.commit()
     db.close()
 
-    return Expenses(None, int(amount), category_name)
+    return Expenses(None, amount, category_name)
 
 
 async def get_today_expenses(chat_id: int) -> str:
@@ -79,24 +81,27 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int):
 
     for res in result:
         row_id = res[0]
-        amount = int(res[1])
+        amount = format_amount(res[1])
         category = res[2]
 
         total = total + amount
 
         text_lines.append(f'{amount} сом на {category.lower()} - /del_{row_id}')
 
-    text_lines.append(f'\nИтого: {total} сом')
+    text_lines.append(f'\nИтого: {format_amount(total)} сом')
 
     return '\n'.join(text_lines)
 
 
-def parse_message(raw_message: str) -> int:
-    raw = raw_message.strip()
+def parse_message(raw_message: str):
+    cleaned = raw_message.replace(",", ".").strip()
 
-    if not raw.isdigit():
-        raise ValueError(
-            "Введите только сумму, например:\n300"
-        )
+    try:
+        amount = float(cleaned)
+    except ValueError:
+        raise ValueError("Введите сумму в формате 200 или 12.5")
 
-    return int(raw)
+    if amount <= 0:
+        raise ValueError("Сумма должна быть больше нуля")
+
+    return format_amount(amount)

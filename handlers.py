@@ -77,13 +77,13 @@ async def command_month_handler(message: Message) -> None:
 
 
 # Добавление расходов
-@router.message(F.text.regexp(r"^\d+$"))
+@router.message(F.text.regexp(r"^\d+([.,]\d+)?$"))
 async def amount_handler(message: Message):
     chat_id = message.chat.id
     try:
         amount = expenses.parse_message(message.text)
         user_id = message.from_user.id
-        pending_amount[user_id] = int(amount)
+        pending_amount[user_id] = amount
     except Exception as e:
         await message.answer(str(e))
         return
