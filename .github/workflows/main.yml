@@ -1,0 +1,25 @@
+name: Python Bot CD 
+
+on:
+  push:
+    branches: [ master ] 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy using ssh
+      uses: appleboy/ssh-action@master 
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }} 
+        key: ${{ secrets.PRIVATE_KEY }} 
+        port: 22
+        script: |
+          cd ~/FinanceTgBot
+          git pull origin master
+          git status
+          source venv/bin/activate
+          pip install -r requirements.txt
+          pm2 restart app 
