@@ -77,7 +77,7 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int, end_of_day: boo
     if end_of_day:
         query = f'select c.id as category_id, sum(e.amount) as amount, c.name as name from expenses e inner join categories c on c.id = e.category_id where e.chat_id = {chat_id} and date(e.created_at) >= {start} and date(e.created_at) < {end} group by c.id, c.name order by amount desc'
     else:
-        query = f'select e.id as id, e.amount as amount, c.name as name from expenses e inner join categories c on c.id = e.category_id where e.chat_id = {chat_id} and date(e.created_at) >= {start} and date(e.created_at) < {end} order by date(e.created_at) desc'
+        query = f'select e.id as id, e.amount as amount, c.name as name from expenses e inner join categories c on c.id = e.category_id where e.chat_id = {chat_id} and date(e.created_at) >= {start} and date(e.created_at) < {end} order by e.created_at desc'
     cur.execute(query)
     result = cur.fetchall()
     db.close()
