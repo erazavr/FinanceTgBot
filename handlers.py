@@ -146,7 +146,7 @@ async def category_chosen(callback: CallbackQuery):
         return
 
     pending_amount.pop(user_id, None)
-    await callback.message.edit_text(f'Добавлен расход {expense.amount} сом на {expense.category}')
+    await callback.message.edit_text(f'Добавлен расход {expense.amount} сом на {expense.category.lower()}')
 
 
 @router.callback_query(F.data == 'cancel')
