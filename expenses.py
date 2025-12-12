@@ -112,7 +112,7 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int, end_of_day: boo
 
     for res in result:
         if end_of_day:
-            _, raw_amount, category, _ = res
+            _, raw_amount, category = res
             total += raw_amount
             amount = format_amount(raw_amount)
             text_lines.append(f"{amount} сом на {category.lower()}")

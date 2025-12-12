@@ -2,6 +2,7 @@ import asyncio
 from os import getenv
 
 from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 
@@ -16,6 +17,7 @@ MY_CHAT_ID = int(getenv("MY_CHAT_ID"))
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
 
 async def send_midday_reminder():
     await bot.send_message(
@@ -33,7 +35,7 @@ async def send_end_of_day_summary():
 
     await bot.send_message(
         MY_CHAT_ID,
-        f"Итоги за сегодня:\n\n{today_expenses}",
+        f"Итоги за сегодня:\n\n{today_expenses}", parse_mode=ParseMode.HTML
     )
 
 
