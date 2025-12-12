@@ -1,3 +1,4 @@
+from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram import Router, F
@@ -50,7 +51,7 @@ async def command_today_handler(message: Message) -> None:
         await message.answer(str(e))
         return
 
-    await message.answer(today_expenses)
+    await message.answer(today_expenses, parse_mode=ParseMode.HTML)
 
 
 # Расходы за неделю
@@ -62,7 +63,7 @@ async def command_week_handler(message: Message) -> None:
     except Exception as e:
         await message.answer(str(e))
         return
-    await message.answer(week_expenses)
+    await message.answer(week_expenses, parse_mode=ParseMode.HTML)
 
 
 # Расходы за месяц
@@ -74,7 +75,7 @@ async def command_month_handler(message: Message) -> None:
     except Exception as e:
         await message.answer(str(e))
         return
-    await message.answer(month_expenses)
+    await message.answer(month_expenses, parse_mode=ParseMode.HTML)
 
 
 # Список категорий
