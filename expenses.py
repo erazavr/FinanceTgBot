@@ -103,7 +103,7 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int, end_of_day: boo
         for date, cats in category_by_dates.items():
             output_lines.append(f'📅 <b>{date}</b>')
             for category, amount in cats.items():
-                output_lines.append(f'  • <b>{amount}</b> сом - {category.lower()}')
+                output_lines.append(f'     • <b>{amount}</b> сом - {category.lower()}')
 
         output_lines.append(f'\n✨ <b>Итого: {format_amount(total)} сом</b>')
         return '\n'.join(output_lines)
