@@ -36,6 +36,7 @@ async def command_start_handler(message: Message) -> None:
         "• /month — показать расходы за месяц \n"
         "• /add_category — добавить категорию \n"
         "• /get_categories — список категорий \n"
+        "• /analyze — AI анализ твоих расходов \n"
     )
 
 
@@ -49,6 +50,7 @@ async def command_start_handler(message: Message) -> None:
         "• /month — показать расходы за месяц \n"
         "• /add_category — добавить категорию \n"
         "• /get_categories — список категорий \n"
+        "• /analyze — AI анализ твоих расходов \n"
     )
 
 
