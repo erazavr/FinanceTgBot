@@ -1,11 +1,22 @@
+from os import getenv
+
+import requests
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram import Router, F
+from dotenv import load_dotenv
+
 from keyboards import inline_categories, cancel_button
 
 import expenses
 import categories
+
+
+load_dotenv()
+
+AI_API_KEY = getenv("AI_API_KEY")
+AI_MODEL = getenv("AI_MODEL")
 
 router = Router()
 
@@ -18,7 +29,7 @@ user_state: dict[int, str] = {}
 async def command_start_handler(message: Message) -> None:
     await message.answer(
         "Бот для учета финансов!💸\n"
-        "Просто отправьте сумму и выберите категорию\n"
+        "Просто отправь сумму и выбери категорию\n"
         "Доступные команды: \n"
         "• /today — показать расходы за сегодня \n"
         "• /week — показать расходы за неделю \n"
@@ -102,7 +113,7 @@ async def amount_handler(message: Message):
         await message.answer(str(e))
         return
 
-    await message.reply(f'Сумма {amount} сом \nВыберите категорию:', reply_markup=await inline_categories(chat_id))
+    await message.reply(f'Сумма {amount} сом \nВыбери категорию:', reply_markup=await inline_categories(chat_id))
 
 
 # Добавление категории
@@ -110,7 +121,57 @@ async def amount_handler(message: Message):
 async def add_category_handler(message: Message) -> None:
     user_id = message.from_user.id
     user_state[user_id] = "waiting_category_name"
-    await message.reply('Напишите название категории', reply_markup=cancel_button)
+    await message.reply('Напиши название категории', reply_markup=cancel_button)
+
+
+def ask_ai(prompt: str) -> str:
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {AI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "model": AI_MODEL,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+
+    return response.json()["choices"][0]["message"]["content"]
+
+@router.message(Command("analyze"))
+async def chat(message: Message):
+    await message.answer("🤔 Анализирую твои расходы...")
+
+    try:
+        chat_id = message.chat.id
+        last_expenses = await expenses.format_expenses_for_ai(chat_id)
+
+        prompt = f"""
+          Ты ассистент по учету личных финансов.
+        
+          Проанализируй мои расходы за последние дни:
+
+          {last_expenses}
+
+          Дай мне КРАТКИЙ анализ (до 500 слов):
+          1. Краткий анализ - на что я трачу больше всего
+          2. Советы по оптимизации расходов
+          3. Есть ли странные или необычные траты
+          4. Общую оценку моего финансового поведения
+
+          Отвечай по-дружески, но честно.
+          
+          Не используй ** чтобы выделить текст, используй лучше тег <b> 
+          """
+        answer = ask_ai(prompt)
+        await message.answer(answer, parse_mode=ParseMode.HTML)
+    except Exception as e:
+        await message.answer(f"Ошибка AI 😢 \nОшибка: {e}")
 
 
 # Удаление категории

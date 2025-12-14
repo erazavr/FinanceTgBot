@@ -139,3 +139,42 @@ def parse_message(raw_message: str):
         raise ValueError("Сумма должна быть больше нуля")
 
     return format_amount(amount)
+
+
+async def format_expenses_for_ai(chat_id: int):
+    db = get_db()
+    cur = db.cursor()
+
+    query = """
+        SELECT c.name as category_name, e.amount as amount, e.created_at as created_at 
+        FROM expenses e
+        INNER JOIN CATEGORIES c ON c.id = e.category_id
+        WHERE e.chat_id = ? 
+        AND DATE(e.created_at) >= DATE('now', '-7 days')
+        ORDER BY created_at DESC
+        """
+
+    cur.execute(query, (chat_id,))
+    result = cur.fetchall()
+    db.close()
+    output_lines = []
+    category_by_dates = {}
+    total = 0
+
+    for category, amount, created_at in result:
+        date = created_at.split(' ')[0]
+        total += amount
+        _amount = format_amount(amount)
+        category_by_dates.setdefault(date, {})
+        category_by_dates[date][category] = category_by_dates[date].get(category, 0) + _amount
+
+    for date, cats in category_by_dates.items():
+        output_lines.append(f'{date}')
+        for category, amount in cats.items():
+            output_lines.append(f'     • {amount} сом - {category.lower()}')
+
+    output_lines.append(f'\nИтого: {format_amount(total)} сом')
+    return '\n'.join(output_lines)
+
+
+
