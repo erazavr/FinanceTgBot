@@ -12,7 +12,6 @@ from keyboards import inline_categories, cancel_button
 import expenses
 import categories
 
-
 load_dotenv()
 
 AI_API_KEY = getenv("AI_API_KEY")
@@ -145,6 +144,7 @@ def ask_ai(prompt: str) -> str:
 
     return response.json()["choices"][0]["message"]["content"]
 
+
 @router.message(Command("analyze"))
 async def chat(message: Message):
     await message.answer("🤔 Анализирую твои расходы...")
@@ -165,10 +165,15 @@ async def chat(message: Message):
           2. Советы по оптимизации расходов
           3. Есть ли странные или необычные траты
           4. Общую оценку моего финансового поведения
-
-          Отвечай по-дружески, но честно.
-          
-          Не используй ** чтобы выделить текст, используй лучше тег <b> 
+            
+          ВАЖНО: 
+          - Отвечай по-дружески, но честно
+          - НЕ используй звездочки (*) для форматирования
+          - Для выделения текста используй HTML теги: <b>жирный текст</b>
+          - НЕ используй Markdown форматирование
+          - Пиши простым текстом с HTML тегами где нужно
+          - Используй эмодзи для визуального разделения  
+          - НЕ делай так: **Топ-3** или *важно*  
           """
         answer = ask_ai(prompt)
         await message.answer(answer, parse_mode=ParseMode.HTML)
@@ -234,7 +239,7 @@ async def catch_category_name_handler(message: Message) -> None:
         return
     try:
         chat_id = message.chat.id
-        await categories.add_category(message.text,chat_id)
+        await categories.add_category(message.text, chat_id)
     except Exception as e:
         await message.answer(str(e))
         return
