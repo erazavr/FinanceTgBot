@@ -91,6 +91,7 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int, end_of_day: boo
 
     output_lines = []
     category_by_dates = {}
+    category_group = {}
 
     if group_by_day:
         for cat_id, amount, category, created_at in result:
@@ -98,13 +99,20 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int, end_of_day: boo
             total += amount
             _amount = format_amount(amount)
             category_by_dates.setdefault(date, {})
+            category_group.setdefault(category, 0)
+            category_group[category] = category_group.get(category, 0) + _amount
             category_by_dates[date][category] = category_by_dates[date].get(category, 0) + _amount
 
         for date, cats in category_by_dates.items():
             output_lines.append(f'📅 <b>{date}</b>')
             for category, amount in cats.items():
                 output_lines.append(f'     • <b>{amount}</b> сом - {category.lower()}')
+        output_lines.append(f'\n📊 <b>Итого по категориям:</b>\n')
 
+        sorted_cats = sorted(category_group.items(), key=lambda x: x[1], reverse=True)
+
+        for category, amount in sorted_cats:
+            output_lines.append(f'<b>{amount}</b> сом - {category.lower()}')
         output_lines.append(f'\n✨ <b>Итого: {format_amount(total)} сом</b>')
         return '\n'.join(output_lines)
 
@@ -121,6 +129,8 @@ def _get_expenses(start: str, end: str, text: str, chat_id: int, end_of_day: boo
             total += raw_amount
             amount = format_amount(raw_amount)
             text_lines.append(f"<b>{amount}</b> сом - {category.lower()} - /del_{row_id}")
+
+
 
     text_lines.append(f'\n✨ <b>Итого: {format_amount(total)} сом</b>')
 
